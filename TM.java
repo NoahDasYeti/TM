@@ -40,6 +40,7 @@ public class TM {
 				break;
 			case "size":
 				size(args[1], args[2]);
+            break;
 				
 			default:
 				System.err.println("Enter a valid input: TM <Command> <\"TaskName\"> <\"Input\">");
@@ -75,7 +76,7 @@ public class TM {
          tempLogFile.description = data;
       }
       else {
-         tempLogFile.description = tempLogFile.description + "\t\t\n     " +data;
+         tempLogFile.description = tempLogFile.description + "\n\t\t     " + data;
       }
 		
 		Log.put(name, tempLogFile);
@@ -124,7 +125,7 @@ public class TM {
 				totalTime += System.currentTimeMillis() - tempLogFile.startTime;
 			}
 			else {
-				totalTime = tempLogFile.totalTime;
+				totalTime += tempLogFile.totalTime;
 			}
 		}
 		
