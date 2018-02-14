@@ -33,6 +33,8 @@ public class TM {
 					summary(args[1]);
 				}
 				break;
+			case "size":
+				size(args[1], args[2]);
 				
 			default:
 				System.err.println("Enter a valid input: TM <Command> <\"TaskName\"> <\"Input\">");
@@ -117,6 +119,14 @@ public class TM {
 		System.out.println("Total Task Time: " + readableTime(totalTime));
 	}
 	
+	public static void size(String name, String data) throws ClassNotFoundException, IOException {
+		LogFile tempLogFile = Log.get(name);
+		
+		tempLogFile.size = data;
+		
+		Log.put(name, tempLogFile);
+	}
+	
 	public static String readableTime(long time) {
 		long different = time;
 		
@@ -150,6 +160,7 @@ class LogFile implements java.io.Serializable{
 	long startTime;
 	long stopTime = 0;
 	long totalTime = 0;
+	String size = "No declared size.";
 	String startDate;
 	String stopDate = "Ongoing.";
 	String description = "No current description.";
@@ -169,7 +180,7 @@ class LogFile implements java.io.Serializable{
 		if (stopTime == 0) {status = "Active";}
 		else {status = "Done";}
 		
-		return name + " <" + status + ">:\n" + 
+		return name + " <" + status + ">: " + size + "\n" + 
 			   "\tDescription: " + description + "\n" +
 			   "\tStart Time: " + startDate + "\n" +
 			   "\tStop Time: " + stopDate;
