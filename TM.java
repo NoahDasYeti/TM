@@ -71,7 +71,12 @@ public class TM {
 	public static void describe(String name, String data) throws ClassNotFoundException, IOException {
 		LogFile tempLogFile = Log.get(name);
 		
-		tempLogFile.description = data;
+      if(tempLogFile.description.equals("No current description.")){
+         tempLogFile.description = data;
+      }
+      else {
+         tempLogFile.description = tempLogFile.description + "\t\t\n     " +data;
+      }
 		
 		Log.put(name, tempLogFile);
 	}
