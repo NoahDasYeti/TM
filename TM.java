@@ -23,7 +23,12 @@ public class TM {
 				stop(args[1]);
 				break;
 			case "describe":
-				describe(args[1], args[2]);
+            if(args.length == 4){
+				   describe(args[1], args[2], args[3]);
+            }
+            else {
+               describe(args[1], args[2]);
+            }
 				break;
 			case "summary":
 				if(args.length == 1) {
@@ -69,6 +74,11 @@ public class TM {
 		tempLogFile.description = data;
 		
 		Log.put(name, tempLogFile);
+	}
+   
+   public static void describe(String name, String data, String size) throws ClassNotFoundException, IOException {
+      describe(name, data);
+      size(name, size);
 	}
 	
 	public static void summary(String name) {
