@@ -1,0 +1,375 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+public class TMModel implements ITMModel{
+	static DateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy, hh:mm:ss a");
+
+	public boolean startTask(String name) {
+		LogFile tempLogFile = Log.get(name);
+		
+		if(tempLogFile == null) { 
+			return false; 
+		}
+		else { 
+			Log.put(name); 
+			return true; 
+		}
+	}
+	
+	public boolean stopTask(String name) {
+		LogFile tempLogFile = Log.get(name);
+		
+		if(tempLogFile == null) {
+			return false;
+		}
+		else {
+			Date date = new Date();
+		
+			tempLogFile.stopTime = System.currentTimeMillis();
+			tempLogFile.stopDate = dateFormat.format(date);
+			
+			tempLogFile.totalTime = tempLogFile.stopTime - tempLogFile.startTime;
+		
+			Log.put(name, tempLogFile);
+			return true;
+		}
+	}
+	
+	public boolean describeTask(String name, String data) {
+		LogFile tempLogFile = Log.get(name);
+		
+		if(tempLogFile == null) {
+			return false;
+		}
+		else {
+			
+			if(tempLogFile.description.equals("No current description.")){
+				tempLogFile.description = data;
+			}
+			else {
+				tempLogFile.description = tempLogFile.description + "\n\t\t     " + data;
+			}
+		
+		Log.put(name, tempLogFile);
+		return true;
+		}
+	}
+	
+	public boolean sizeTask(String name, String data) {
+		LogFile tempLogFile = Log.get(name);
+		
+		if(tempLogFile == null) {
+			return false;
+		}
+		else {
+			tempLogFile.size = data;
+		
+			Log.put(name, tempLogFile);
+			return true;
+		}
+	}
+
+	public boolean deleteTask(String name) {
+		HashMap<String, LogFile> tempLogMap = Log.read();
+		
+		if(!tempLogMap.containsKey(name)) {
+			return false;
+		}
+		else {
+			tempLogMap.remove(name);
+			Log.write(tempLogMap);
+			
+			return true;
+		}
+	}
+	
+	public boolean renameTask(String oldName, String newName) {
+		LogFile tempLogFile = Log.get(oldName);
+		
+		if(tempLogFile == null) {
+			System.err.println("Task not found.");
+			
+			return false;
+		}
+		else if(Log.get(newName) == null) {
+			System.err.println(newName + " already exists.");
+			
+			return false;
+		}
+		else {
+			deleteTask(oldName);
+			
+			Log.put(newName, tempLogFile);
+			
+			return true;
+		}
+	}
+	
+	/**
+
+	public static String readableTime(long time) {
+		long different = time;
+		
+		long secondsInMilli = 1000;
+		long minutesInMilli = secondsInMilli * 60;
+		long hoursInMilli = minutesInMilli * 60;
+		long daysInMilli = hoursInMilli *24;
+		
+		long elapsedDays = different / daysInMilli;
+		different = different % daysInMilli;
+		
+		long elapsedHours = different / hoursInMilli;
+		different = different % hoursInMilli;
+		
+		long elapsedMinutes = different / minutesInMilli;
+		different = different % minutesInMilli;
+		
+		long elapsedSeconds = different / secondsInMilli;
+		different = different % secondsInMilli;
+		
+		return "" + elapsedDays + "D, " + elapsedHours + "H, "
+				  + elapsedMinutes + "M, " + elapsedSeconds + "S";
+	}
+	
+	**/
+	
+	public String taskElapsedTime(String name){
+		LogFile tempLogFile = Log.get(name);
+		
+		return "" + tempLogFile.totalTime;
+	}
+	
+	public String taskSize(String name) {
+		LogFile tempLogFile = Log.get(name);
+		
+		return tempLogFile.size;
+	}
+	
+	public String taskDescription(String name) {
+		LogFile tempLogFile = Log.get(name);
+		
+		return tempLogFile.description;
+	}
+	
+	public String minTimeForSize(String size) {
+		long tempMinTime = 9999;
+		boolean firstRun = true;
+		
+		if(!taskSizes().contains(size)) {
+			System.err.println("Size not found.");
+			return null;
+		}
+		else {
+			
+			for(String name : Log.read().keySet()) {
+				if(Log.get(name).size.equals(size) && firstRun == true) {
+					tempMinTime = Log.get(name).totalTime;
+					firstRun = false;
+				}
+				else if(Log.get(name).size.equals(size) && tempMinTime > Log.get(name).totalTime) {
+					tempMinTime = Log.get(name).totalTime;
+				}
+			}
+			
+			return "" + tempMinTime;
+		}
+	}
+	
+    public String maxTimeForSize(String size) {
+    	long tempMaxTime = 0;
+		boolean firstRun = true;
+		
+		if(!taskSizes().contains(size)) {
+			System.err.println("Size not found.");
+			return null;
+		}
+		else {
+			
+			for(String name : Log.read().keySet()) {
+				if(Log.get(name).size.equals(size) && firstRun == true) {
+					tempMaxTime = Log.get(name).totalTime;
+					firstRun = false;
+				}
+				else if(Log.get(name).size.equals(size) && tempMaxTime < Log.get(name).totalTime) {
+					tempMaxTime = Log.get(name).totalTime;
+				}
+			}
+			
+			return "" + tempMaxTime;
+		}
+    }
+    
+    public String avgTimeForSize(String size) {
+    	long sizeTimeTotal = 0;
+    	long count = 0;
+    	
+    	if(!taskSizes().contains(size)) {
+			System.err.println("Size not found.");
+			return null;
+		}
+    	else {
+ 
+    		for(String name : Log.read().keySet()) {
+    			if(Log.get(name).size.equals(size)) {
+    				sizeTimeTotal += Log.get(name).totalTime;
+    				count++;
+    			}
+    		}
+    		
+    		return "" + sizeTimeTotal / count;
+    	}
+    }
+    
+    public String elapsedTimeForAllTasks() {
+    	long totalTime = 0;
+    	
+    	for(String name : Log.read().keySet()) {
+    		
+    		totalTime += Log.get(name).totalTime;
+		}
+    	
+    	return "" + totalTime;
+    }
+    
+    public Set<String> taskNames() {
+    	Set<String> tempSet = Log.read().keySet();
+    	
+    	return tempSet;
+    }
+  
+    public Set<String> taskNamesForSize(String size) {
+    	Set<String> tempSet = new HashSet<>();
+    	
+    	
+    	
+    	return null;
+    }
+    
+    public Set<String> taskSizes() {
+    	Set<String> tempSet = new HashSet<>();
+    	
+    	for (String name : taskNames()) {
+    		tempSet.add(Log.get(name).size);
+    	}
+    	
+    	return tempSet;
+    }
+    
+}
+
+class LogFile implements java.io.Serializable{
+	DateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy, hh:mm:ss a");
+	static final long serialVersionUID = 1L;
+	
+	String name;
+	long startTime;
+	long stopTime = 0;
+	long totalTime = 0;
+	String size = "No declared size.";
+	String startDate;
+	String stopDate = "Ongoing.";
+	String description = "No current description.";
+	
+	
+	public LogFile(String name){
+		Date date = new Date();
+		
+		this.name = name;
+		this.startTime = System.currentTimeMillis();
+		this.startDate = dateFormat.format(date);
+	}
+	
+	public String toString() {
+		String status;
+		
+		if (stopTime == 0) {status = "Active";}
+		else {status = "Done";}
+		
+		return name + " <" + status + ">: " + size + "\n" + 
+			   "\tDescription: " + description + "\n" +
+			   "\tStart Time: " + startDate + "\n" +
+			   "\tStop Time: " + stopDate;
+	}
+}
+
+class Log {
+	public static void put(String name) {
+		LogFile tempLogFile = new LogFile(name);
+		HashMap<String, LogFile> tempLogMap;
+		
+		try {
+			tempLogMap = read();
+		} 
+		catch(Exception e) {
+			tempLogMap = new HashMap<>();
+		}
+		
+		tempLogMap.put(name, tempLogFile);
+		write(tempLogMap);
+	}
+	
+	public static void put(String name, LogFile tempLogFile) {
+		HashMap<String, LogFile> tempLogMap = read();
+		
+		tempLogMap.put(name, tempLogFile);
+		write(tempLogMap);
+	}
+	
+	public static LogFile get(String name) {
+		try {
+			HashMap<String, LogFile> tempLogMap = read();
+			
+			if(!tempLogMap.containsKey(name)) {
+				System.err.println("Task not found.");
+				System.exit(1);
+			}
+			
+			return tempLogMap.get(name);
+		} 
+		catch(Exception e) {
+			return null;
+		}
+	}
+	
+	public static boolean write(HashMap<String, LogFile> logMap) {
+		try {
+			FileOutputStream fos = new FileOutputStream("Log.ser");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			
+			oos.writeObject(logMap);
+			
+			oos.close();
+			fos.close();
+			
+			return true;
+		}
+		catch (IOException e) {
+			return false;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, LogFile> read() {
+		try{
+			FileInputStream fis = new FileInputStream("Log.ser");
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			HashMap<String, LogFile> tempLogFile = (HashMap<String, LogFile>) ois.readObject();
+			ois.close();
+			fis.close();
+		
+			return tempLogFile;
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+}
