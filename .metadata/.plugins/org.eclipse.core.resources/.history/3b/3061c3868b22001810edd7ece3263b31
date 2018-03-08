@@ -97,7 +97,7 @@ public class TMModel implements ITMModel{
 			
 			return false;
 		}
-		else if(Log.get(newName) != null) {
+		else if(Log.get(newName) == null) {
 			System.err.println(newName + " already exists.");
 			
 			return false;

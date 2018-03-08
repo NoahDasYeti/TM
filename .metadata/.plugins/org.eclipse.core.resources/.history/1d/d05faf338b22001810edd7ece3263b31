@@ -97,7 +97,7 @@ public class TMModel implements ITMModel{
 			
 			return false;
 		}
-		else if(Log.get(newName) != null) {
+		else if(Log.get(newName) == null) {
 			System.err.println(newName + " already exists.");
 			
 			return false;
@@ -304,7 +304,8 @@ class Log {
 			HashMap<String, LogFile> tempLogMap = read();
 			
 			if(!tempLogMap.containsKey(name)) {
-				return null;
+				System.err.println("Task not found.");
+				System.exit(1);
 			}
 			
 			LogFile tempLogFile = tempLogMap.get(name);

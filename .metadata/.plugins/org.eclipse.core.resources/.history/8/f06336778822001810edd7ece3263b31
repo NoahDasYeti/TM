@@ -91,7 +91,7 @@ public class TM {
 		
 		String size = tmModel.taskSize(name);
 		String description = tmModel.taskDescription(name);
-		String elapsedTime = readableTime("" + tmModel.taskElapsedTime(name));
+		String elapsedTime = tmModel.taskElapsedTime(name); //readableTime(tmModel.taskElapsedTime(name));
 		
 		System.out.println(name + ":\n" + "\tTask Size: " + size + 
 						   "\n\tTask Description: " + description +

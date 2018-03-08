@@ -14,12 +14,15 @@ public class TMModel implements ITMModel{
 	static DateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy, hh:mm:ss a");
 
 	public boolean startTask(String name) {
-		if(Log.read() != null && Log.read().keySet().contains(name)) {
-			return false;
-		}
+		LogFile tempLogFile = Log.get(name);
 		
-		Log.put(name);
-		return true; 
+		if(tempLogFile == null) { 
+			return false; 
+		}
+		else { 
+			Log.put(name); 
+			return true; 
+		}
 	}
 	
 	public boolean stopTask(String name) {
@@ -97,7 +100,7 @@ public class TMModel implements ITMModel{
 			
 			return false;
 		}
-		else if(Log.get(newName) != null) {
+		else if(Log.get(newName) == null) {
 			System.err.println(newName + " already exists.");
 			
 			return false;
@@ -113,11 +116,6 @@ public class TMModel implements ITMModel{
 	
 	public String taskElapsedTime(String name){
 		LogFile tempLogFile = Log.get(name);
-		long elapsedTime = tempLogFile.totalTime;
-		
-		if(elapsedTime == 0) {
-			elapsedTime = System.currentTimeMillis() - tempLogFile.startTime;
-		}
 		
 		return "" + tempLogFile.totalTime;
 	}
@@ -280,15 +278,14 @@ class Log {
 		LogFile tempLogFile = new LogFile(name);
 		HashMap<String, LogFile> tempLogMap;
 		
-		if(read() == null) {
-			tempLogMap = new HashMap<>();
-			tempLogMap.put(name, tempLogFile);
-		}
-		else {
+		try {
 			tempLogMap = read();
-			tempLogMap.put(name, tempLogFile);
+		} 
+		catch(Exception e) {
+			tempLogMap = new HashMap<>();
 		}
-
+		
+		tempLogMap.put(name, tempLogFile);
 		write(tempLogMap);
 	}
 	
@@ -304,14 +301,8 @@ class Log {
 			HashMap<String, LogFile> tempLogMap = read();
 			
 			if(!tempLogMap.containsKey(name)) {
-				return null;
-			}
-			
-			LogFile tempLogFile = tempLogMap.get(name);
-			
-			if(tempLogFile.stopTime == 0) {
-				tempLogFile.totalTime = System.currentTimeMillis() - tempLogFile.startTime;
-				put(name, tempLogFile);
+				System.err.println("Task not found.");
+				System.exit(1);
 			}
 			
 			return tempLogMap.get(name);

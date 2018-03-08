@@ -97,7 +97,7 @@ public class TMModel implements ITMModel{
 			
 			return false;
 		}
-		else if(Log.get(newName) != null) {
+		else if(Log.get(newName) == null) {
 			System.err.println(newName + " already exists.");
 			
 			return false;
@@ -113,11 +113,6 @@ public class TMModel implements ITMModel{
 	
 	public String taskElapsedTime(String name){
 		LogFile tempLogFile = Log.get(name);
-		long elapsedTime = tempLogFile.totalTime;
-		
-		if(elapsedTime == 0) {
-			elapsedTime = System.currentTimeMillis() - tempLogFile.startTime;
-		}
 		
 		return "" + tempLogFile.totalTime;
 	}
@@ -304,14 +299,8 @@ class Log {
 			HashMap<String, LogFile> tempLogMap = read();
 			
 			if(!tempLogMap.containsKey(name)) {
-				return null;
-			}
-			
-			LogFile tempLogFile = tempLogMap.get(name);
-			
-			if(tempLogFile.stopTime == 0) {
-				tempLogFile.totalTime = System.currentTimeMillis() - tempLogFile.startTime;
-				put(name, tempLogFile);
+				System.err.println("Task not found.");
+				System.exit(1);
 			}
 			
 			return tempLogMap.get(name);
